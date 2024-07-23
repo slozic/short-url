@@ -1,4 +1,4 @@
-package com.slozic.short_url;
+package com.slozic.shorturl;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
