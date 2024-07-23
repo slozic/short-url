@@ -3,6 +3,8 @@ package com.slozic.shorturl.controllers;
 import com.slozic.shorturl.controllers.dtos.CreateShortUrlRequest;
 import com.slozic.shorturl.controllers.dtos.CreateUrlResponse;
 import com.slozic.shorturl.controllers.dtos.GetUrlResponse;
+import com.slozic.shorturl.exceptions.UrlExistsException;
+import com.slozic.shorturl.exceptions.UrlNotFoundException;
 import com.slozic.shorturl.services.ShortUrlService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -11,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +39,12 @@ public class ShortUrlController {
                     content = @Content)})
     @GetMapping
     public ResponseEntity getLongUrl(@RequestParam("url") String shortUrl) {
-        String longUrl = shortUrlService.getShortUrl(shortUrl);
+        String longUrl = null;
+        try {
+            longUrl = shortUrlService.getShortUrl(shortUrl);
+        } catch (UrlNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Url not found: " + shortUrl);
+        }
         GetUrlResponse getUrlResponse = new GetUrlResponse(shortUrl, longUrl);
         return ResponseEntity.ok(getUrlResponse);
     }
@@ -52,15 +60,18 @@ public class ShortUrlController {
     @PostMapping
     public ResponseEntity createShortUrl(@RequestBody @Valid CreateShortUrlRequest shortUrlRequest) {
         URL url;
+        String shortUrl;
         try {
             //basic url validation, update with e.g. regex checks
             url = new URL(shortUrlRequest.longUrl());
+            shortUrl = shortUrlService.createShortUrl(url);
+            CreateUrlResponse createUrlResponse = new CreateUrlResponse(shortUrl);
+            return ResponseEntity.ok(createUrlResponse);
+        } catch (UrlExistsException e) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("Url already exists: " + shortUrlRequest.longUrl());
         } catch (MalformedURLException e) {
             return ResponseEntity.badRequest().body("Invalid url sent: " + shortUrlRequest.longUrl());
         }
-        String shortUrl = shortUrlService.createShortUrl(url);
-        CreateUrlResponse createUrlResponse = new CreateUrlResponse(shortUrl);
-        return ResponseEntity.ok(createUrlResponse);
     }
-
+    
 }
