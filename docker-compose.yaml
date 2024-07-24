@@ -1,0 +1,13 @@
+---
+version: '3.7'
+services:
+  mongo-db:
+    image: mongo:6.0.11-jammy
+    container_name: mongo-db
+    environment:
+      MONGO_INITDB_DATABASE: short-url-service
+    ports:
+      - 27017:27017
+    volumes:
+      - ./mongodb-data:/data/db
+    restart: always

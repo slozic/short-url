@@ -41,7 +41,7 @@ public class ShortUrlController {
     public ResponseEntity getLongUrl(@RequestParam("url") String shortUrl) {
         String longUrl = null;
         try {
-            longUrl = shortUrlService.getShortUrl(shortUrl);
+            longUrl = shortUrlService.getLongUrl(shortUrl);
         } catch (UrlNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Url not found: " + shortUrl);
         }
@@ -50,7 +50,7 @@ public class ShortUrlController {
     }
 
     @Operation(
-            summary = "Create a short url based on actual long url.")
+            summary = "Create a short url based on actual url.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully created Short Url.",
                     content = {@Content(mediaType = "application/json",
@@ -62,7 +62,7 @@ public class ShortUrlController {
         URL url;
         String shortUrl;
         try {
-            //basic url validation, update with e.g. regex checks
+            // basic url validation, update with e.g. regex checks
             url = new URL(shortUrlRequest.longUrl());
             shortUrl = shortUrlService.createShortUrl(url);
             CreateUrlResponse createUrlResponse = new CreateUrlResponse(shortUrl);
@@ -73,5 +73,5 @@ public class ShortUrlController {
             return ResponseEntity.badRequest().body("Invalid url sent: " + shortUrlRequest.longUrl());
         }
     }
-    
+
 }
